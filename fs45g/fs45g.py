@@ -26,12 +26,14 @@ class fs45g:
 	def _createMeta( self, path, UID, GID, mode ):
 		my = dict()
 		my['path']=path
-		my['UID']=UID
-		my['GID']=GID
+		my['uid']=UID
+		my['gid']=GID
 		my['mode']=tools.fmode(mode)
 		my['ctime']=time.time()
 		my['mtime']=time.time()
-		my['atime']=time.time()	
+		my['atime']=time.time()
+		my['nlink'] = 0
+		my['size'] = 0	
 		return my
 
 	def prepareDir( self, path, UID, GID, mode ):
@@ -69,9 +71,9 @@ class fs45g:
 		myfile['files'] = []
 		mydir['files'].append(myfile)
 
-	def loadDirByPathRecursion( self, path ):
+	def loadDirByPathRecursively( self, path ):
 		metapath = self.makefile( tools.hashpath(path), 'meta' )
-		with open(filepath) as meta_file:    
+		with open(metapath) as meta_file:    
 			mydir_files = json.load(meta_file)
 			for f in mydir_files:
 				if f['type'] == 'dirinmeta':
@@ -80,16 +82,41 @@ class fs45g:
 			return mydir_files
 		return []
 
-	def persistenceDirRecursion( self, mydir ):
+	def loadDirByPath( self, path ):
+		metapath = self.makefile( tools.hashpath(path), 'meta' )
+		with open(metapath) as meta_file:    
+			mydir_files = json.load(meta_file)
+			return mydir_files
+		return []
+
+	def persistenceDirRecursively( self, mydir ):
 		for f in mydir['files']:
 			if f['type'] == 'dir':
-				self.persistenceDirRecursion( f )
+				self.persistenceDirRecursively( f )
 				f['type'] = 'dirinmeta'
 				f['files'] = []
 		path = self.makefile( mydir['namehash'], 'meta' )
 		f = open(path,'w')
 		f.write(json.dumps(mydir['files'],indent=2))
 		f.close()
+
+	def _syncDir( self, files ):
+		for f in files:
+			if f['type'] == 'dir':
+				self._syncDir( f['files'] )
+				metapath = self.makefile( tools.hashpath(f['path']), 'meta' )
+				if os.path.isfile(metapath):
+					os.remove(metapath)
+			elif f['type'] == 'dirinmeta':
+				load_files = self.loadDirByPath(f['path'])
+				self._syncDir( load_files )
+		
+	def syncDirRecursively( self, mydir ):
+		self._syncDir( mydir['files'] )
+		path = self.makefile( mydir['namehash'], 'meta' )
+		f = open(path,'w')
+		f.write(json.dumps(mydir['files'],indent=2))
+		f.close()	
 		
 
 
