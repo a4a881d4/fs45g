@@ -10,7 +10,7 @@ import errno
 
 from fuse import Fuse
 from keylayoutelement import KeyLayoutElement
-from fs45gcashe import fs45gCashe
+from fs45gcache import fs45gCache
 from fs45gstat import fs45gStat,fs45gROStat
 from fs45gfile import fs45gFile
 from metadata import MetaData
@@ -33,7 +33,7 @@ class fs45g(Fuse):
 		fp.close()
 		self.FSData.root.runtimeSetup()
 
-		self.cache = fs45gCashe('root',self.cachedir,-1,preserve)
+		self.cache = fs45gCache('root',self.cachedir,-1,preserve)
 		self.cache.syncTree(self.FSData.root)
 
 		return True

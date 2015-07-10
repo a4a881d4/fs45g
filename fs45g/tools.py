@@ -1,7 +1,7 @@
 import hashlib
 import base64
 import time
-
+import os
 
 def fmode( strmode ):
 	mode = 0
@@ -28,7 +28,7 @@ def flag2mode(flags):
 
 	return m
 
-def makefilename(self,hashkey,dir):
+def makefilename(hashkey,dir):
 	path = dir + '/' + hashkey[:2]
 	if not os.path.isdir(path):
 		os.mkdir(path)
