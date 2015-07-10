@@ -63,4 +63,8 @@ target/
 # fs45g
 root/
 cashe/
+mnt/
+persistence/
+tmp/
+
 
