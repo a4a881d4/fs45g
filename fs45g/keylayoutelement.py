@@ -80,7 +80,7 @@ class KeyLayoutElement:
 		# Need to repoint the parent to the passed in parent
 		clone.parent = parent 
 
-		clone.sha1_sum = self.sha1_sum
+		clone.sha_sum = self.sha_sum
 
 		for i in self.children:
 			child = i.cloneSubtree(clone)
@@ -237,4 +237,12 @@ class KeyLayoutElement:
 			i.delete(filesystem)
 		filesystem.cache.removeFromCache(self)
 		self.removeNode(filesystem,False)
+
+	def sha_sums(self):
+		sums = []
+		for i in self.children:
+			sums.extend(i.sha_sums())
+			if i.sha_sum != '':
+				sums.append(i.sha_sum)
+		return sums
 

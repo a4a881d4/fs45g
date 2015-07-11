@@ -35,3 +35,23 @@ def makefilename(hashkey,dir):
 	filename = path + '/' + hashkey
 	print "make file name: "+filename
 	return filename
+
+def hashfile( filename ):
+	sum = hashlib.sha256()	
+	fd = open(filename)
+	end = False
+	while end == False:
+		buf = fd.read(4096)
+		if (len(buf) == 0):
+			end = True
+		else:
+			sum.update(buf)
+	sha_sum = base64.urlsafe_b64encode(sum.digest())
+	fd.close()
+	return sha_sum
+
+	sh = hashlib.sha256()
+	sh.update(path)
+	dir_hash = base64.urlsafe_b64encode(sh.digest())
+	return dir_hash
+

@@ -325,9 +325,6 @@ class fs45g(Fuse):
 		syslog.syslog(syslog.LOG_INFO, "Verifying writeback")
 		self.FSData.root.writebackAll(self)
 
-		syslog.syslog(syslog.LOG_INFO, "Waiting on all threads to finish")
-		self.FSData.root.completeAllIo(True, True)
-
 		self.cache.shutdown()
 
 		if self.lazy_fsdata == True:
@@ -341,6 +338,44 @@ def fs45gEmpty( root="root" ):
 	fs.FSData = MetaData()
 	fs.updateFsData()
 		
+def fs45gcheck( root='root', persistence='persistence' ):
+	fuse.fuse_python_api=(0, 2)
+	fs = fs45g()
+	fs.root = root
+	fs.persistence = persistence
+	if fs.setup() == False:
+		syslog.closelog()
+		sys.exit(1)
+	sums = fs.FSData.root.sha_sums()
+	list = os.listdir(fs.persistence)
+	deletelist=[]
+	for dirs in list:
+		path = fs.persistence + '/' + dirs
+		files = os.listdir(path)
+		for fn in files:
+			fpath = path+'/'+fn
+			if fn[:2]!=dirs:
+				deletelist.append(fpath)
+				print 'error dir: '+fpath
+			elif tools.hashfile(fpath) != fn:
+				deletelist.append(fpath)
+				print 'error sha: ' + fpath
+			elif not fn in sums:
+				deletelist.append(fpath)
+				print 'error in fs: ' + fpath
+	print deletelist
+	for fpath in deletelist:
+		os.unlink(fpath)
+
+
+def fs45gDumpHash( root='root' ):
+	fuse.fuse_python_api=(0, 2)
+	fs = fs45g()
+	fs.root = root
+	if fs.setup() == False:
+		syslog.closelog()
+		sys.exit(1)
+	print fs.FSData.root.sha_sums()
 
 def fs45g_cleanup(filesystem):
 	filesystem.shutdown()
@@ -376,7 +411,7 @@ def fs_usage():
 	
 def handle_command_mode():
 	try:
-		opts, args = getopt.getopt(sys.argv[2:], "hc")
+		opts, args = getopt.getopt(sys.argv[2:], "hcHt:")
 	except getopt.GetoptError:
 		fs_usage()
 		return 1
@@ -386,6 +421,15 @@ def handle_command_mode():
 			return 0
 		if o == "-c":
 			fs45gEmpty(sys.argv[3])
+			return 0
+		if o == "-H":
+			fs45gDumpHash(sys.argv[3])
+			return 0
+		if o == "-t":
+			if a == 'check':
+				fs45gcheck(sys.argv[4],sys.argv[5])
+			if a == 'create':
+				fs45gEmpty(sys.argv[4])
 			return 0
 	fs_usage()
 	return 0
