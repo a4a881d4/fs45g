@@ -61,7 +61,10 @@ class fs45gFile(object):
 		self.file.write(buf)
 		self.file.flush()
 		size = self.node.stat.st_size
-		self.node.stat.st_size += (len(buf) - (size - offset))
+		if size<offset+len(buf):
+			self.node.stat.st_size += (len(buf) - (size - offset))
+			print 'file ex:',(len(buf) - (size - offset))
+			print repr(buf[:8]),' offset:',offset,' size:',size
 		self.node.setDirty(True)
 		return len(buf)
 

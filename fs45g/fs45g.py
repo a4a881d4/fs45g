@@ -8,6 +8,7 @@ import getopt
 import sys
 import errno
 import stat
+import shutil
 
 from fuse import Fuse
 from keylayoutelement import KeyLayoutElement
@@ -19,7 +20,7 @@ from metadata import MetaData
 class fs45g(Fuse):
 	def __init__(self, *args, **kw):
 		Fuse.__init__(self, *args, **kw)
-		self.writeback_time = 10.0
+		self.writeback_time = 0.1
 		self.lazy_fsdata=True
 		self.cachedir="/tmp"
 		self.persistence = "persistence"
@@ -90,7 +91,7 @@ class fs45g(Fuse):
 		node.iolock.release()
 
 	def link ( self, targetPath, linkPath ):
-		nodetok = path.split('/')
+		nodetok = linkpath.split('/')
 		lname = nodetok[len(nodetok)-1]
 		nodetok.remove(lname)
 		dir = ""

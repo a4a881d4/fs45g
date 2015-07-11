@@ -129,6 +129,11 @@ class KeyLayoutElement:
 			self.iolock.release()
 			return
 		self.sha_sum = filesystem.cache.hash(self)
+		update_stat = filesystem.cache.statInCache(self)		
+		self.stat.st_atime = update_stat.st_atime
+		self.stat.st_mtime = update_stat.st_mtime
+		self.stat.st_ctime = update_stat.st_ctime
+
 		fn = tools.makefilename( self.sha_sum, filesystem.persistence )		
 		if not os.path.isfile(fn):
 			shutil.copy(filesystem.cache.fn(self),fn)			
