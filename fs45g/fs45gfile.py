@@ -3,6 +3,7 @@ import stat
 from keylayoutelement import KeyLayoutElement
 from fs45gstat import fs45gStat,fs45gROStat
 import tools
+import thread
 
 class fs45gFile(object):
 
@@ -47,24 +48,32 @@ class fs45gFile(object):
 		self.node = node
 		return None 
 
+	def lseek(self,offset):
+		print 'no implement'
 
 	def read(self, length, offset):
+		self.node.iolock.acquire()
 		self.file.seek(offset)
 		buf = self.file.read(length)
+		self.node.iolock.release()
 		return buf 
 
 	def write(self, buf, offset):
 		if ((offset + len(buf)) > (5 * 1024 * 1024 * 1024)):
 			return -errno.EFBIG
-
+		self.node.iolock.acquire()
+		size = self.node.stat.st_size
+		if size<offset:
+			self.file.seek(size,0)
+			self.file.write(bytearray(offset-size))
+			self.node.stat.st_size=offset		
 		self.file.seek(offset)
 		self.file.write(buf)
 		self.file.flush()
 		size = self.node.stat.st_size
 		if size<offset+len(buf):
 			self.node.stat.st_size += (len(buf) - (size - offset))
-			print 'file ex:',(len(buf) - (size - offset))
-			print repr(buf[:8]),' offset:',offset,' size:',size
+		self.node.iolock.release()
 		self.node.setDirty(True)
 		return len(buf)
 

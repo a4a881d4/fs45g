@@ -133,6 +133,11 @@ class KeyLayoutElement:
 		self.stat.st_atime = update_stat.st_atime
 		self.stat.st_mtime = update_stat.st_mtime
 		self.stat.st_ctime = update_stat.st_ctime
+		if self.parent != None:
+			self.parent.stat.st_atime = update_stat.st_atime
+			self.parent.stat.st_mtime = update_stat.st_mtime
+			self.parent.stat.st_ctime = update_stat.st_ctime
+
 
 		fn = tools.makefilename( self.sha_sum, filesystem.persistence )		
 		if not os.path.isfile(fn):
