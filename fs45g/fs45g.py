@@ -363,7 +363,6 @@ def fs45gcheck( root='root', persistence='persistence' ):
 			elif not fn in sums:
 				deletelist.append(fpath)
 				print 'error in fs: ' + fpath
-	print deletelist
 	for fpath in deletelist:
 		os.unlink(fpath)
 

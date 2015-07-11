@@ -40,9 +40,6 @@ class fs45gCache:
 			else:
 				sum.update(buf)
 		sha_sum = base64.urlsafe_b64encode(sum.digest())
-		print "hash: "+filename+' len: ',
-		print fd.tell(),
-		print 'sha_sum:'+sha_sum		
 		fd.close()
 		return sha_sum
 
@@ -86,7 +83,6 @@ class fs45gCache:
 			return False
 		keyname = node.getKeyName()
 		filename = self.dir + "/" + keyname
-		print "isInCache:"+filename
 		return os.path.exists(filename)
 
 	def openInCache(self, node, flags=(os.O_RDWR|os.O_CREAT)):

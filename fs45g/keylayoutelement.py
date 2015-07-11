@@ -130,12 +130,10 @@ class KeyLayoutElement:
 			return
 		self.sha_sum = filesystem.cache.hash(self)
 		fn = tools.makefilename( self.sha_sum, filesystem.persistence )		
-		print 'write: fn '+fn+ ' file name: '+filesystem.cache.fn(self)
 		if not os.path.isfile(fn):
 			shutil.copy(filesystem.cache.fn(self),fn)			
 		self.dirty = False
 		self.iolock.release()
-		print 'write after: sha_sum '+self.sha_sum
 		return
 		
 	def readFrom(self, filesystem):
@@ -172,7 +170,6 @@ class KeyLayoutElement:
 		self.iolock.acquire()
 		self.openref = self.openref+1
 		self.iolock.release()
-		print self.dump2obj()
 		return os.fdopen(filesystem.cache.openInCache(self,flags),tools.flag2mode(flags))
 
 	def close(self, filesystem):
