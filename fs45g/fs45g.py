@@ -7,6 +7,7 @@ import syslog
 import getopt
 import sys
 import errno
+import stat
 
 from fuse import Fuse
 from keylayoutelement import KeyLayoutElement

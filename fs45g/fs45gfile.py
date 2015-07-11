@@ -34,7 +34,7 @@ class fs45gFile(object):
 				node = KeyLayoutElement(filename)
 				node.runtimeSetup()
 				node.stat.st_mode = stat.S_IFREG | 0755
-				node.sha_sum = tools.hashpath('')
+				node.sha_sum = ''
 				dirnode.addChild(node)
 			else:
 				return None 

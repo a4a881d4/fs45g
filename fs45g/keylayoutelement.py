@@ -33,10 +33,19 @@ class KeyLayoutElement:
 		self.parent = None
 		self.iolock = None
 		self.openref = 0
-		self.sha1_sum = '' 
+		self.sha_sum = '' 
 		self.target_path = None 
 		self.pending_delete = False
 		self.xattrs = {} 
+	
+	def dump2obj(self):
+		obj={}
+		for key in ['name','target_path','sha_sum','pending_delete']:
+			obj[key]=self.__dict__[key]
+		obj['stat']={}
+		for key in self.stat.__dict__:
+			obj['stat'][key]=self.stat.__dict__[key]
+		return obj
 
 	def runtimeSetup(self):
 		for i in self.children:
@@ -119,16 +128,20 @@ class KeyLayoutElement:
 		if self.stat.st_size == 0:
 			self.iolock.release()
 			return
-
-		if filesystem.cache.validate(self):
-			fn = tools.makefilename( self.sha_sum, filesystem.persistence )		
-			if not os.path.isfile(fn):
-				shutil.copy(filesystem.cache.fn(self),fn)			
-			self.node.dirty = False
-			self.node.iolock.release()
+		self.sha_sum = filesystem.cache.hash(self)
+		fn = tools.makefilename( self.sha_sum, filesystem.persistence )		
+		print 'write: fn '+fn+ ' file name: '+filesystem.cache.fn(self)
+		if not os.path.isfile(fn):
+			shutil.copy(filesystem.cache.fn(self),fn)			
+		self.dirty = False
+		self.iolock.release()
+		print 'write after: sha_sum '+self.sha_sum
 		return
 		
 	def readFrom(self, filesystem):
+		if self.sha_sum == '':
+			self.stat.st_size = 0
+			return
 		fn = tools.makefilename( self.sha_sum, filesystem.persistence )
 		if os.path.isfile(fn):
 			self.iolock.acquire()
@@ -159,6 +172,7 @@ class KeyLayoutElement:
 		self.iolock.acquire()
 		self.openref = self.openref+1
 		self.iolock.release()
+		print self.dump2obj()
 		return os.fdopen(filesystem.cache.openInCache(self,flags),tools.flag2mode(flags))
 
 	def close(self, filesystem):
@@ -214,4 +228,13 @@ class KeyLayoutElement:
 		# We make a temporary copy of the file for uploading
 		fd = filesystem.cache.shadowInCache(self)
 		return fd
+
+	def delete(self, filesystem):
+		self.iolock.acquire()
+		self.pending_delete = True
+		self.iolock.release()
+		for i in self.children:
+			i.delete(filesystem)
+		filesystem.cache.removeFromCache(self)
+		self.removeNode(filesystem,False)
 

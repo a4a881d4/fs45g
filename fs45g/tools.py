@@ -33,4 +33,5 @@ def makefilename(hashkey,dir):
 	if not os.path.isdir(path):
 		os.mkdir(path)
 	filename = path + '/' + hashkey
+	print "make file name: "+filename
 	return filename
