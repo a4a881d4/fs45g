@@ -40,11 +40,17 @@ class KeyLayoutElement:
 	
 	def dump2obj(self):
 		obj={}
-		for key in ['name','target_path','sha_sum','pending_delete']:
+		for key in ['name','target_path','sha_sum']:
 			obj[key]=self.__dict__[key]
 		obj['stat']={}
 		for key in self.stat.__dict__:
 			obj['stat'][key]=self.stat.__dict__[key]
+		return obj
+	def dump2dir(self):
+		obj=self.dump2obj()
+		obj['children']=[]
+		for i in self.children:
+			obj['children'].append(i.dump2dir())		
 		return obj
 
 	def runtimeSetup(self):
@@ -155,6 +161,7 @@ class KeyLayoutElement:
 			self.iolock.acquire()
 			shutil.copy(fn,filesystem.cache.fn(self))
 			self.iolock.release()
+			filesystem.cache.addToCache(self,os.O_RDWR)
 		else:
 			syslog.syslog(syslog.LOG_WARNING, "sha_sum = "+self.sha_sum+"not in persistence")
 
@@ -180,7 +187,9 @@ class KeyLayoutElement:
 		self.iolock.acquire()
 		self.openref = self.openref+1
 		self.iolock.release()
-		return os.fdopen(filesystem.cache.openInCache(self,flags),tools.flag2mode(flags))
+		file = os.fdopen(filesystem.cache.openInCache(self,flags),tools.flag2mode(flags))
+		print "open: ",self.name,'flags',flags,'file',file
+		return file
 
 	def close(self, filesystem):
 		self.iolock.acquire()

@@ -9,6 +9,7 @@ import sys
 import errno
 import stat
 import shutil
+import json
 
 from fuse import Fuse
 from keylayoutelement import KeyLayoutElement
@@ -377,6 +378,15 @@ def fs45gDumpHash( root='root' ):
 		sys.exit(1)
 	print fs.FSData.root.sha_sums()
 
+def fs45gDump( root='root' ):
+	fuse.fuse_python_api=(0, 2)
+	fs = fs45g()
+	fs.root = root
+	if fs.setup() == False:
+		syslog.closelog()
+		sys.exit(1)
+	print json.dumps(fs.FSData.root.dump2dir(),indent=2)
+
 def fs45g_cleanup(filesystem):
 	filesystem.shutdown()
 		
@@ -430,6 +440,8 @@ def handle_command_mode():
 				fs45gcheck(sys.argv[4],sys.argv[5])
 			if a == 'create':
 				fs45gEmpty(sys.argv[4])
+			if a == 'dump':
+				fs45gDump(sys.argv[4])
 			return 0
 	fs_usage()
 	return 0

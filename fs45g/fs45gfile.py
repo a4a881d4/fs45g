@@ -43,7 +43,7 @@ class fs45gFile(object):
 			if (flags & os.O_EXCL) == os.O_EXCL:
 				return None
 
-		self.file = node.open(self.myFS, os.O_RDWR)
+		self.file = node.open(self.myFS, flags)
 		self.fd = self.file.fileno()
 		self.node = node
 		return None 
@@ -74,7 +74,12 @@ class fs45gFile(object):
 		if size<offset+len(buf):
 			self.node.stat.st_size += (len(buf) - (size - offset))
 		self.node.iolock.release()
+		update_stat = self.myFS.cache.statInCache(self.node)
+		self.node.stat.st_atime = update_stat.st_atime
+		self.node.stat.st_mtime = update_stat.st_mtime
+		self.node.stat.st_ctime = update_stat.st_ctime
 		self.node.setDirty(True)
+		print "write: ",len(buf)
 		return len(buf)
 
 	def release(self, flags):
